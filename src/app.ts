@@ -1,8 +1,11 @@
-import express, { type Application } from 'express';
+import express, { type Application, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import { StatusCodes } from 'http-status-codes';
 import { apiRouter } from './routes';
+import { SuccessResponse } from './common/api/response/success-response';
 import { httpLogger } from './common/utils/logger';
+import { processingTime } from './common/middleware/processing-time.middleware';
 import { apiRateLimiter } from './common/middleware/rate-limit.middleware';
 import { notFoundHandler } from './common/middleware/not-found.middleware';
 import { errorHandler } from './common/middleware/error.middleware';
@@ -11,11 +14,23 @@ export const createApp = (): Application => {
   const app = express();
 
   app.disable('x-powered-by');
+  app.use(processingTime);
   app.use(helmet());
   app.use(cors());
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true }));
   app.use(httpLogger);
+
+  app.get('/', (_req: Request, res: Response) => {
+    res
+      .status(StatusCodes.OK)
+      .json(
+        new SuccessResponse(
+          { name: 'Demo Credit Wallet API', version: '1.0.0', health: '/api/v1/health' },
+          'Welcome to the Demo Credit wallet service',
+        ),
+      );
+  });
 
   app.use('/api/v1', apiRateLimiter, apiRouter);
 

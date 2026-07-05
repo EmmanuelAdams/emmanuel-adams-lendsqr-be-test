@@ -18,4 +18,10 @@ export const logger = pino({
   },
 });
 
-export const httpLogger = pinoHttp({ logger });
+export const httpLogger = pinoHttp({
+  logger,
+  serializers: {
+    req: (req) => ({ method: req.method, url: req.url }),
+    res: (res) => ({ statusCode: res.statusCode }),
+  },
+});
