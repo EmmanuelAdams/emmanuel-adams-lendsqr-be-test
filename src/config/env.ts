@@ -5,6 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  CORS_ORIGINS: z.string().optional(),
 
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   JWT_EXPIRES_IN: z.string().default('1h'),
@@ -33,6 +34,11 @@ export const env = {
   isTest: raw.NODE_ENV === 'test',
   port: raw.PORT,
   logLevel: raw.LOG_LEVEL,
+  corsOrigins: raw.CORS_ORIGINS
+    ? raw.CORS_ORIGINS.split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : undefined,
   jwt: {
     secret: raw.JWT_SECRET,
     expiresIn: raw.JWT_EXPIRES_IN,

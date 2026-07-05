@@ -1,16 +1,19 @@
 import express, { type Application, type Request, type Response } from 'express';
 import helmet from 'helmet';
-import cors from 'cors';
+import cors, { type CorsOptions } from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { StatusCodes } from 'http-status-codes';
 import { apiRouter } from './routes';
 import { openApiDocument } from './docs/openapi';
 import { SuccessResponse } from './common/api/response/success-response';
+import { env } from './config/env';
 import { httpLogger } from './common/utils/logger';
 import { processingTime } from './common/middleware/processing-time.middleware';
 import { apiRateLimiter } from './common/middleware/rate-limit.middleware';
 import { notFoundHandler } from './common/middleware/not-found.middleware';
 import { errorHandler } from './common/middleware/error.middleware';
+
+const corsOptions: CorsOptions = env.corsOrigins ? { origin: env.corsOrigins } : {};
 
 export const createApp = (): Application => {
   const app = express();
@@ -18,7 +21,7 @@ export const createApp = (): Application => {
   app.disable('x-powered-by');
   app.use(processingTime);
   app.use(helmet());
-  app.use(cors());
+  app.use(cors(corsOptions));
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true }));
   app.use(httpLogger);
