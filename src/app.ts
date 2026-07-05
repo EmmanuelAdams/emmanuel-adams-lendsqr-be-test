@@ -1,8 +1,10 @@
 import express, { type Application, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
 import { StatusCodes } from 'http-status-codes';
 import { apiRouter } from './routes';
+import { openApiDocument } from './docs/openapi';
 import { SuccessResponse } from './common/api/response/success-response';
 import { httpLogger } from './common/utils/logger';
 import { processingTime } from './common/middleware/processing-time.middleware';
@@ -31,6 +33,8 @@ export const createApp = (): Application => {
         ),
       );
   });
+
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument()));
 
   app.use('/api/v1', apiRateLimiter, apiRouter);
 

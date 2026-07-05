@@ -17,4 +17,8 @@ export class WalletRepository {
   ): Promise<WalletRow | undefined> {
     return executor<WalletRow>('wallets').where({ account_number: accountNumber }).first();
   }
+
+  async findByUserId(userId: string, executor: Knex = this.db): Promise<WalletRow | undefined> {
+    return executor<WalletRow>('wallets').where({ user_id: userId }).first();
+  }
 }
