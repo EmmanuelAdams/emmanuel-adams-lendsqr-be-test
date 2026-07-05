@@ -122,6 +122,32 @@ describe('WalletService.fund', () => {
     expect(walletRepo.updateBalance).not.toHaveBeenCalled();
   });
 
+  it('returns the original result when a concurrent request already used the key', async () => {
+    const { service, idempotencyRepo, transactionRepo, walletRepo, db } = setup();
+    idempotencyRepo.findByKey
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValue({ resource_reference: 'ref-c' });
+    db.transaction.mockRejectedValue({ code: 'ER_DUP_ENTRY' });
+    transactionRepo.findByReference.mockResolvedValue([
+      {
+        id: 'c1',
+        wallet_id: 'w1',
+        type: 'funding',
+        direction: 'credit',
+        amount: 5000,
+        balance_before: 1000,
+        balance_after: 6000,
+        reference: 'ref-c',
+        created_at: new Date(),
+      },
+    ]);
+    walletRepo.findById.mockResolvedValue({ ...wallet, balance: 6000 });
+
+    const result = await service.fund('u1', 5000, 'dup-key');
+
+    expect(result.transaction.balanceAfter).toBe(6000);
+  });
+
   it('throws NotFoundError when the wallet does not exist', async () => {
     const { service, walletRepo } = makeService();
     walletRepo.findByUserIdForUpdate.mockResolvedValue(undefined);
@@ -198,6 +224,31 @@ describe('WalletService.transfer', () => {
       UnprocessableEntityError,
     );
   });
+
+  it('replays the original result for a repeated key without re-transferring', async () => {
+    const { service, idempotencyRepo, transactionRepo, walletRepo, db } = setup();
+    idempotencyRepo.findByKey.mockResolvedValue({ resource_reference: 'ref-t' });
+    transactionRepo.findByReference.mockResolvedValue([
+      {
+        id: 'td1',
+        wallet_id: 'w1',
+        type: 'transfer',
+        direction: 'debit',
+        amount: 3000,
+        balance_before: 10000,
+        balance_after: 7000,
+        reference: 'ref-t',
+        created_at: new Date(),
+      },
+    ]);
+    walletRepo.findById.mockResolvedValue({ ...sender, balance: 7000 });
+
+    const result = await service.transfer('u1', '0987654321', 3000, 'key-t');
+
+    expect(result.transaction.balanceAfter).toBe(7000);
+    expect(db.transaction).not.toHaveBeenCalled();
+    expect(walletRepo.lockByIds).not.toHaveBeenCalled();
+  });
 });
 
 describe('WalletService.withdraw', () => {
@@ -237,6 +288,31 @@ describe('WalletService.withdraw', () => {
     walletRepo.findByUserIdForUpdate.mockResolvedValue(undefined);
 
     await expect(service.withdraw('u1', 4000)).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('replays the original result for a repeated key without re-withdrawing', async () => {
+    const { service, idempotencyRepo, transactionRepo, walletRepo, db } = setup();
+    idempotencyRepo.findByKey.mockResolvedValue({ resource_reference: 'ref-w' });
+    transactionRepo.findByReference.mockResolvedValue([
+      {
+        id: 'wd1',
+        wallet_id: 'w1',
+        type: 'withdrawal',
+        direction: 'debit',
+        amount: 4000,
+        balance_before: 10000,
+        balance_after: 6000,
+        reference: 'ref-w',
+        created_at: new Date(),
+      },
+    ]);
+    walletRepo.findById.mockResolvedValue({ ...wallet, balance: 6000 });
+
+    const result = await service.withdraw('u1', 4000, 'key-w');
+
+    expect(result.transaction.balanceAfter).toBe(6000);
+    expect(db.transaction).not.toHaveBeenCalled();
+    expect(walletRepo.updateBalance).not.toHaveBeenCalled();
   });
 });
 
