@@ -9,7 +9,23 @@ const {
   DB_NAME = 'demo_credit',
   DATABASE_URL,
   DB_SSL,
+  DB_SSL_REJECT_UNAUTHORIZED,
+  DB_CA_CERT,
 } = process.env;
+
+const buildSsl = (): { rejectUnauthorized: boolean; ca?: string } | undefined => {
+  if (DB_SSL !== 'true') return undefined;
+
+  const ssl: { rejectUnauthorized: boolean; ca?: string } = {
+    rejectUnauthorized: DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+  };
+
+  if (DB_CA_CERT) {
+    ssl.ca = Buffer.from(DB_CA_CERT, 'base64').toString('utf8');
+  }
+
+  return ssl;
+};
 
 const buildConnection = (database: string): Knex.Config['connection'] => {
   if (DATABASE_URL) return DATABASE_URL;
@@ -19,7 +35,7 @@ const buildConnection = (database: string): Knex.Config['connection'] => {
     user: DB_USER,
     password: DB_PASSWORD,
     database,
-    ...(DB_SSL === 'true' ? { ssl: { rejectUnauthorized: true } } : {}),
+    ssl: buildSsl(),
   };
 };
 

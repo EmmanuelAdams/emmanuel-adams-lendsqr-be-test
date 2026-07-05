@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -27,5 +28,8 @@
     "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "exclude": ["node_modules", "dist", "coverage"],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }
