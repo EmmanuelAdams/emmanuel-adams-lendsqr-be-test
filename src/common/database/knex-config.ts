@@ -61,6 +61,7 @@ const knexConfigs: Record<string, Knex.Config> = {
   test: {
     ...shared,
     connection: buildConnection(`${DB_NAME}_test`),
+    pool: { min: 0, max: 5 },
   },
   production: {
     ...shared,
