@@ -194,3 +194,43 @@ describe('WalletService.transfer', () => {
     );
   });
 });
+
+describe('WalletService.withdraw', () => {
+  const setup = () => {
+    const ctx = makeService();
+    ctx.walletRepo.findByUserIdForUpdate.mockResolvedValue({ ...wallet, balance: 10000 });
+    ctx.transactionRepo.create.mockImplementation(async (data: Record<string, unknown>) => ({
+      ...data,
+      metadata: null,
+      created_at: new Date(),
+    }));
+    return ctx;
+  };
+
+  it('debits the wallet and records a withdrawal transaction', async () => {
+    const { service, walletRepo } = setup();
+
+    const result = await service.withdraw('u1', 4000);
+
+    expect(walletRepo.findByUserIdForUpdate).toHaveBeenCalled();
+    expect(walletRepo.updateBalance).toHaveBeenCalledWith('w1', 6000, expect.anything());
+    expect(result.wallet.balance).toBe(6000);
+    expect(result.transaction.type).toBe('withdrawal');
+    expect(result.transaction.direction).toBe('debit');
+  });
+
+  it('rejects a withdrawal that exceeds the balance', async () => {
+    const { service, walletRepo } = setup();
+    walletRepo.findByUserIdForUpdate.mockResolvedValue({ ...wallet, balance: 1000 });
+
+    await expect(service.withdraw('u1', 5000)).rejects.toBeInstanceOf(UnprocessableEntityError);
+    expect(walletRepo.updateBalance).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundError when the wallet does not exist', async () => {
+    const { service, walletRepo } = makeService();
+    walletRepo.findByUserIdForUpdate.mockResolvedValue(undefined);
+
+    await expect(service.withdraw('u1', 4000)).rejects.toBeInstanceOf(NotFoundError);
+  });
+});

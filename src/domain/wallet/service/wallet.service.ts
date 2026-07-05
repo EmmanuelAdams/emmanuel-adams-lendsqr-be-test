@@ -174,6 +174,61 @@ export class WalletService {
     }
   }
 
+  async withdraw(
+    userId: string,
+    amount: number,
+    idempotencyKey?: string,
+  ): Promise<WalletMutationResult> {
+    const replayed = await this.findReplay(idempotencyKey);
+    if (replayed) {
+      return replayed;
+    }
+
+    const reference = randomUUID();
+    try {
+      return await this.db.transaction(async (trx) => {
+        await this.recordIdempotency(idempotencyKey, userId, reference, trx);
+
+        const wallet = await this.walletRepo.findByUserIdForUpdate(userId, trx);
+        if (!wallet) {
+          throw new NotFoundError('Wallet not found');
+        }
+
+        const balanceBefore = Number(wallet.balance);
+        if (balanceBefore < amount) {
+          throw new UnprocessableEntityError('Insufficient funds');
+        }
+        const balanceAfter = balanceBefore - amount;
+        await this.walletRepo.updateBalance(wallet.id, balanceAfter, trx);
+
+        const transaction = await this.transactionRepo.create(
+          {
+            id: randomUUID(),
+            wallet_id: wallet.id,
+            type: 'withdrawal',
+            direction: 'debit',
+            amount,
+            balance_before: balanceBefore,
+            balance_after: balanceAfter,
+            reference,
+          },
+          trx,
+        );
+
+        return {
+          wallet: toWalletResponse({ ...wallet, balance: balanceAfter }),
+          transaction: toTransactionResponse(transaction),
+        };
+      });
+    } catch (error) {
+      const conflictReplay = await this.findReplayOnConflict(error, idempotencyKey);
+      if (conflictReplay) {
+        return conflictReplay;
+      }
+      throw error;
+    }
+  }
+
   private async findReplay(idempotencyKey?: string): Promise<WalletMutationResult | null> {
     if (!idempotencyKey) {
       return null;

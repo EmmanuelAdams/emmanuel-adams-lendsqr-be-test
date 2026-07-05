@@ -11,6 +11,7 @@ import {
 } from '../../docs/registry';
 import { fundSchema } from './dto/fund.dto';
 import { transferSchema } from './dto/transfer.dto';
+import { withdrawSchema } from './dto/withdraw.dto';
 
 const walletAndTransaction = z.object({
   wallet: dataSchemas.wallet,
@@ -126,6 +127,52 @@ registry.registerPath({
     404: {
       description: 'Recipient account not found',
       ...json(errorSchema(errorExample('Recipient account not found'))),
+    },
+    422: {
+      description: 'Insufficient funds or invalid request',
+      ...json(errorSchema(errorExample('Insufficient funds'))),
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/v1/wallet/withdraw',
+  tags: ['Wallet'],
+  summary: 'Withdraw funds from the authenticated user wallet (amount in kobo)',
+  security: [{ bearerAuth: [] }],
+  request: {
+    headers: idempotencyHeader,
+    body: json(withdrawSchema.openapi({ example: { amount: 100000 } })),
+  },
+  responses: {
+    200: {
+      description: 'Withdrawal successful',
+      ...json(
+        successSchema(walletAndTransaction, {
+          success: true,
+          message: 'Withdrawal successful',
+          data: {
+            wallet: { ...examples.wallet, balance: 400000 },
+            transaction: {
+              ...examples.transaction,
+              type: 'withdrawal',
+              direction: 'debit',
+              amount: 100000,
+              balanceBefore: 500000,
+              balanceAfter: 400000,
+            },
+          },
+        }),
+      ),
+    },
+    401: {
+      description: 'Unauthorized',
+      ...json(errorSchema(errorExample('Authentication token is missing or malformed'))),
+    },
+    404: {
+      description: 'Wallet not found',
+      ...json(errorSchema(errorExample('Wallet not found'))),
     },
     422: {
       description: 'Insufficient funds or invalid request',

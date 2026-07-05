@@ -5,6 +5,7 @@ import { SuccessResponse } from '../../../common/api/response/success-response';
 import { UnauthorizedError } from '../../../common/errors/app-error';
 import { fundSchema } from '../dto/fund.dto';
 import { transferSchema } from '../dto/transfer.dto';
+import { withdrawSchema } from '../dto/withdraw.dto';
 import { WalletService } from '../service/wallet.service';
 
 export class WalletController {
@@ -30,6 +31,14 @@ export class WalletController {
     const idempotencyKey = req.header('Idempotency-Key');
     const result = await this.walletService.transfer(userId, accountNumber, amount, idempotencyKey);
     res.status(StatusCodes.OK).json(new SuccessResponse(result, 'Transfer successful'));
+  });
+
+  withdraw = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const userId = this.requireUserId(req);
+    const { amount } = withdrawSchema.parse(req.body);
+    const idempotencyKey = req.header('Idempotency-Key');
+    const result = await this.walletService.withdraw(userId, amount, idempotencyKey);
+    res.status(StatusCodes.OK).json(new SuccessResponse(result, 'Withdrawal successful'));
   });
 
   private requireUserId(req: Request): string {
