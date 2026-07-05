@@ -24,8 +24,6 @@
     "migrate:make": "knex migrate:make -x ts",
     "migrate:latest": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "seed:make": "knex seed:make -x ts",
-    "seed:run": "knex seed:run",
     "prepare": "husky"
   },
   "lint-staged": {

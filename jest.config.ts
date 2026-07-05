@@ -15,7 +15,6 @@ const config: Config = {
     '!src/server.ts',
     '!src/test/**',
     '!src/common/database/migrations/**',
-    '!src/common/database/seeds/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],

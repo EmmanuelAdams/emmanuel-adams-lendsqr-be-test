@@ -47,10 +47,6 @@ const shared: Knex.Config = {
     extension: 'ts',
     tableName: 'knex_migrations',
   },
-  seeds: {
-    directory: './src/common/database/seeds',
-    extension: 'ts',
-  },
 };
 
 const knexConfigs: Record<string, Knex.Config> = {
