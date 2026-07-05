@@ -1,11 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import { env } from '../../config/env';
+import { TokenService } from '../auth/token.service';
 import { UnauthorizedError } from '../errors/app-error';
 
-export interface AuthTokenPayload {
-  sub: string;
-}
+const tokenService = new TokenService();
 
 export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   const header = req.headers.authorization;
@@ -18,7 +15,7 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction): 
   const token = header.slice('Bearer '.length).trim();
 
   try {
-    const payload = jwt.verify(token, env.jwt.secret) as AuthTokenPayload;
+    const payload = tokenService.verify(token);
     req.userId = payload.sub;
     next();
   } catch {
