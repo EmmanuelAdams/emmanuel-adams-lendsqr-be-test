@@ -309,6 +309,22 @@ startup; see `.env.example` for the full list. A managed MySQL host that
 requires TLS (for example Aiven) is supported through `DB_SSL` and an optional
 pinned CA in `DB_CA_CERT`.
 
+## Run with Docker
+
+The whole stack (API plus MySQL) runs with one command; migrations are applied on
+startup:
+
+```bash
+docker compose up --build
+```
+
+The API is then on `http://localhost:3000`. The image is a multi-stage build that
+compiles TypeScript in a full-dependency stage and ships only the compiled output
+and production dependencies in a slim runtime, running as a non-root user with a
+health check. Onboarding calls the live Adjutor API, so export a real
+`ADJUTOR_API_KEY` (compose reads it from your `.env`) if you want the Karma check
+to run; the rest of the service works without it.
+
 ## Scripts
 
 | Script                   | Purpose                       |

@@ -2,12 +2,12 @@ import type { Server } from 'node:http';
 import { createApp } from './app';
 import { env } from './config/env';
 import { db } from './common/database/knex';
+import { connectDatabase } from './loaders/database.loader';
 import { logger } from './common/utils/logger';
 
 const start = async (): Promise<void> => {
   try {
-    await db.raw('SELECT 1');
-    logger.info('Database connection established');
+    await connectDatabase();
   } catch (err) {
     logger.error({ err }, 'Failed to connect to the database, shutting down');
     process.exit(1);

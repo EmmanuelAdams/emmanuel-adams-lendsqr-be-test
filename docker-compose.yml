@@ -1,0 +1,42 @@
+services:
+  db:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: demo_credit
+    ports:
+      - '3307:3306'
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      DB_HOST: db
+      DB_PORT: '3306'
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: demo_credit
+      DB_SSL: 'false'
+      JWT_SECRET: ${JWT_SECRET:-docker-local-dev-secret}
+      JWT_EXPIRES_IN: 1h
+      ADJUTOR_BASE_URL: https://adjutor.lendsqr.com/v2
+      ADJUTOR_API_KEY: ${ADJUTOR_API_KEY:-local-placeholder}
+    ports:
+      - '3000:3000'
+    init: true
+
+volumes:
+  db-data:
