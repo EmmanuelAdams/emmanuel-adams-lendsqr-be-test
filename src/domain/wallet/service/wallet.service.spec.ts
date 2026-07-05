@@ -18,7 +18,12 @@ const makeService = () => {
     lockByIds: jest.fn(),
     updateBalance: jest.fn(),
   };
-  const transactionRepo = { create: jest.fn(), findByReference: jest.fn() };
+  const transactionRepo = {
+    create: jest.fn(),
+    findByReference: jest.fn(),
+    findByWalletId: jest.fn(),
+    countByWalletId: jest.fn(),
+  };
   const idempotencyRepo = { findByKey: jest.fn().mockResolvedValue(undefined), create: jest.fn() };
   const db = { transaction: jest.fn(async (cb: (trx: unknown) => unknown) => cb({})) };
   const service = new WalletService(
@@ -232,5 +237,68 @@ describe('WalletService.withdraw', () => {
     walletRepo.findByUserIdForUpdate.mockResolvedValue(undefined);
 
     await expect(service.withdraw('u1', 4000)).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe('WalletService.getTransactions', () => {
+  it('returns paginated transactions with meta', async () => {
+    const { service, walletRepo, transactionRepo } = makeService();
+    walletRepo.findByUserId.mockResolvedValue({ ...wallet });
+    transactionRepo.findByWalletId.mockResolvedValue([
+      {
+        id: 't1',
+        wallet_id: 'w1',
+        type: 'funding',
+        direction: 'credit',
+        amount: 5000,
+        balance_before: 0,
+        balance_after: 5000,
+        reference: 'ref-1',
+        created_at: new Date(),
+      },
+    ]);
+    transactionRepo.countByWalletId.mockResolvedValue(45);
+
+    const result = await service.getTransactions('u1', { page: 2, limit: 20 });
+
+    expect(transactionRepo.findByWalletId).toHaveBeenCalledWith(
+      'w1',
+      expect.objectContaining({ limit: 20, offset: 20 }),
+    );
+    expect(result.transactions).toHaveLength(1);
+    expect(result.transactions[0]?.type).toBe('funding');
+    expect(result.meta).toEqual({ total: 45, page: 2, limit: 20, totalPages: 3 });
+  });
+
+  it('applies type and direction filters', async () => {
+    const { service, walletRepo, transactionRepo } = makeService();
+    walletRepo.findByUserId.mockResolvedValue({ ...wallet });
+    transactionRepo.findByWalletId.mockResolvedValue([]);
+    transactionRepo.countByWalletId.mockResolvedValue(0);
+
+    await service.getTransactions('u1', {
+      page: 1,
+      limit: 20,
+      type: 'transfer',
+      direction: 'debit',
+    });
+
+    expect(transactionRepo.findByWalletId).toHaveBeenCalledWith(
+      'w1',
+      expect.objectContaining({ type: 'transfer', direction: 'debit' }),
+    );
+    expect(transactionRepo.countByWalletId).toHaveBeenCalledWith('w1', {
+      type: 'transfer',
+      direction: 'debit',
+    });
+  });
+
+  it('throws NotFoundError when the wallet does not exist', async () => {
+    const { service, walletRepo } = makeService();
+    walletRepo.findByUserId.mockResolvedValue(undefined);
+
+    await expect(service.getTransactions('u1', { page: 1, limit: 20 })).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
   });
 });

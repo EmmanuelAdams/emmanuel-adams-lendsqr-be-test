@@ -7,6 +7,7 @@ const router = Router();
 const controller = new WalletController();
 
 router.get('/', authenticate, controller.getBalance);
+router.get('/transactions', authenticate, controller.getTransactions);
 router.post('/fund', authenticate, financialRateLimiter, controller.fund);
 router.post('/transfer', authenticate, financialRateLimiter, controller.transfer);
 router.post('/withdraw', authenticate, financialRateLimiter, controller.withdraw);

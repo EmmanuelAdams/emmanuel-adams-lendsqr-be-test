@@ -11,10 +11,16 @@ import {
 } from '../../transaction/types/transaction.types';
 import { WalletRepository } from '../repository/wallet.repository';
 import { toWalletResponse, type WalletResponse } from '../types/wallet.types';
+import type { TransactionsQueryDto } from '../dto/transactions-query.dto';
 
 export interface WalletMutationResult {
   wallet: WalletResponse;
   transaction: TransactionResponse;
+}
+
+export interface TransactionHistory {
+  transactions: TransactionResponse[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
 }
 
 export class WalletService {
@@ -31,6 +37,25 @@ export class WalletService {
       throw new NotFoundError('Wallet not found');
     }
     return toWalletResponse(wallet);
+  }
+
+  async getTransactions(userId: string, query: TransactionsQueryDto): Promise<TransactionHistory> {
+    const wallet = await this.walletRepo.findByUserId(userId);
+    if (!wallet) {
+      throw new NotFoundError('Wallet not found');
+    }
+
+    const { page, limit, type, direction } = query;
+    const offset = (page - 1) * limit;
+    const [rows, total] = await Promise.all([
+      this.transactionRepo.findByWalletId(wallet.id, { limit, offset, type, direction }),
+      this.transactionRepo.countByWalletId(wallet.id, { type, direction }),
+    ]);
+
+    return {
+      transactions: rows.map(toTransactionResponse),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async fund(

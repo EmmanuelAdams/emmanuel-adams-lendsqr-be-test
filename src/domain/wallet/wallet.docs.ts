@@ -12,6 +12,7 @@ import {
 import { fundSchema } from './dto/fund.dto';
 import { transferSchema } from './dto/transfer.dto';
 import { withdrawSchema } from './dto/withdraw.dto';
+import { transactionsQuerySchema } from './dto/transactions-query.dto';
 
 const walletAndTransaction = z.object({
   wallet: dataSchemas.wallet,
@@ -177,6 +178,49 @@ registry.registerPath({
     422: {
       description: 'Insufficient funds or invalid request',
       ...json(errorSchema(errorExample('Insufficient funds'))),
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/v1/wallet/transactions',
+  tags: ['Wallet'],
+  summary: 'List the authenticated user transaction history (paginated)',
+  security: [{ bearerAuth: [] }],
+  request: { query: transactionsQuerySchema },
+  responses: {
+    200: {
+      description: 'Transactions retrieved',
+      ...json(
+        successSchema(
+          z.object({
+            transactions: z.array(dataSchemas.transaction),
+            meta: z.object({
+              total: z.number(),
+              page: z.number(),
+              limit: z.number(),
+              totalPages: z.number(),
+            }),
+          }),
+          {
+            success: true,
+            message: 'Transactions retrieved successfully',
+            data: {
+              transactions: [examples.transaction],
+              meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+            },
+          },
+        ),
+      ),
+    },
+    401: {
+      description: 'Unauthorized',
+      ...json(errorSchema(errorExample('Authentication token is missing or malformed'))),
+    },
+    404: {
+      description: 'Wallet not found',
+      ...json(errorSchema(errorExample('Wallet not found'))),
     },
   },
 });
