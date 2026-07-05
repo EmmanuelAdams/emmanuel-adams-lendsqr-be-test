@@ -1,16 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../common/database/knex';
-import { ConflictError, ForbiddenError } from '../../common/errors/app-error';
-import { AdjutorClient } from '../../integrations/adjutor/adjutor.client';
-import { PasswordService } from '../../common/auth/password.service';
-import { TokenService } from '../../common/auth/token.service';
-import { generateAccountNumber } from '../../common/utils/account-number.util';
-import { WalletRepository } from '../wallet/wallet.repository';
-import { toWalletResponse, type WalletResponse } from '../wallet/wallet.types';
-import { UserRepository } from './user.repository';
-import { toUserResponse, type UserResponse } from './user.types';
-import type { RegisterDto } from './dto/register.dto';
+import { db as knexDb } from '../../../common/database/knex';
+import { ConflictError, ForbiddenError } from '../../../common/errors/app-error';
+import { AdjutorClient } from '../../../integrations/adjutor/adjutor.client';
+import { PasswordService } from '../../../common/auth/password.service';
+import { TokenService } from '../../../common/auth/token.service';
+import { generateAccountNumber } from '../../../common/utils/account-number.util';
+import { WalletRepository } from '../../wallet/repository/wallet.repository';
+import { toWalletResponse, type WalletResponse } from '../../wallet/types/wallet.types';
+import { UserRepository } from '../repository/user.repository';
+import { toUserResponse, type UserResponse } from '../types/user.types';
+import type { RegisterDto } from '../dto/register.dto';
 
 const MAX_ACCOUNT_NUMBER_ATTEMPTS = 5;
 

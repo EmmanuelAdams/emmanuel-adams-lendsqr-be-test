@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../common/database/knex';
-import type { NewUser, UserRow } from './user.types';
+import { db as knexDb } from '../../../common/database/knex';
+import type { NewUser, UserRow } from '../types/user.types';
 
 export class UserRepository {
   constructor(private readonly db: Knex = knexDb) {}

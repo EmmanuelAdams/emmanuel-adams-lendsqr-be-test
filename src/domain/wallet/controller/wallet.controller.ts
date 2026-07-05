@@ -1,0 +1,32 @@
+import type { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { asyncHandler } from '../../../common/utils/async-handler';
+import { SuccessResponse } from '../../../common/api/response/success-response';
+import { UnauthorizedError } from '../../../common/errors/app-error';
+import { fundSchema } from '../dto/fund.dto';
+import { WalletService } from '../service/wallet.service';
+
+export class WalletController {
+  constructor(private readonly walletService: WalletService = new WalletService()) {}
+
+  getBalance = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const userId = this.requireUserId(req);
+    const wallet = await this.walletService.getBalance(userId);
+    res.status(StatusCodes.OK).json(new SuccessResponse(wallet, 'Wallet retrieved successfully'));
+  });
+
+  fund = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const userId = this.requireUserId(req);
+    const { amount } = fundSchema.parse(req.body);
+    const idempotencyKey = req.header('Idempotency-Key');
+    const result = await this.walletService.fund(userId, amount, idempotencyKey);
+    res.status(StatusCodes.OK).json(new SuccessResponse(result, 'Wallet funded successfully'));
+  });
+
+  private requireUserId(req: Request): string {
+    if (!req.userId) {
+      throw new UnauthorizedError();
+    }
+    return req.userId;
+  }
+}

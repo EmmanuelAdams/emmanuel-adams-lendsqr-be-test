@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { asyncHandler } from '../../common/utils/async-handler';
-import { SuccessResponse } from '../../common/api/response/success-response';
-import { registerSchema } from '../user/dto/register.dto';
-import { UserService } from '../user/user.service';
-import { loginSchema } from './dto/login.dto';
-import { AuthService } from './auth.service';
+import { asyncHandler } from '../../../common/utils/async-handler';
+import { SuccessResponse } from '../../../common/api/response/success-response';
+import { registerSchema } from '../../user/dto/register.dto';
+import { UserService } from '../../user/service/user.service';
+import { loginSchema } from '../dto/login.dto';
+import { AuthService } from '../service/auth.service';
 
 export class AuthController {
   constructor(

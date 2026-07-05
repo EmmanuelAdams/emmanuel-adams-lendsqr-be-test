@@ -1,8 +1,8 @@
-import { UnauthorizedError } from '../../common/errors/app-error';
-import { PasswordService } from '../../common/auth/password.service';
-import { TokenService } from '../../common/auth/token.service';
-import { UserRepository } from '../user/user.repository';
-import type { LoginDto } from './dto/login.dto';
+import { UnauthorizedError } from '../../../common/errors/app-error';
+import { PasswordService } from '../../../common/auth/password.service';
+import { TokenService } from '../../../common/auth/token.service';
+import { UserRepository } from '../../user/repository/user.repository';
+import type { LoginDto } from '../dto/login.dto';
 
 export interface LoginResult {
   token: string;

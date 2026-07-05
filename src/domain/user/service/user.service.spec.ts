@@ -1,6 +1,6 @@
 import { UserService } from './user.service';
-import { ConflictError, ForbiddenError } from '../../common/errors/app-error';
-import type { RegisterDto } from './dto/register.dto';
+import { ConflictError, ForbiddenError } from '../../../common/errors/app-error';
+import type { RegisterDto } from '../dto/register.dto';
 
 const dto: RegisterDto = {
   firstName: 'Ada',

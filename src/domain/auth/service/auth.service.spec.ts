@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
-import { UnauthorizedError } from '../../common/errors/app-error';
-import type { LoginDto } from './dto/login.dto';
+import { UnauthorizedError } from '../../../common/errors/app-error';
+import type { LoginDto } from '../dto/login.dto';
 
 const dto: LoginDto = { email: 'ada@example.com', password: 'password123' };
 

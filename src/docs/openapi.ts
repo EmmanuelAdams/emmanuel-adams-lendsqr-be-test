@@ -6,6 +6,7 @@ import {
 import { z } from 'zod';
 import { registerSchema } from '../domain/user/dto/register.dto';
 import { loginSchema } from '../domain/auth/dto/login.dto';
+import { fundSchema } from '../domain/wallet/dto/fund.dto';
 
 extendZodWithOpenApi(z);
 
@@ -38,6 +39,17 @@ const walletExample = {
   currency: 'NGN',
 };
 
+const transactionExample = {
+  id: 'b7c6d5e4-3f2a-4b1c-9d8e-6f5a4b3c2d1e',
+  type: 'funding',
+  direction: 'credit',
+  amount: 500000,
+  balanceBefore: 0,
+  balanceAfter: 500000,
+  reference: 'a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+  createdAt: '2026-07-05T09:20:00.000Z',
+};
+
 const dataSchemas = {
   user: z.object({
     id: z.string().uuid(),
@@ -52,6 +64,16 @@ const dataSchemas = {
     accountNumber: z.string(),
     balance: z.number(),
     currency: z.string(),
+  }),
+  transaction: z.object({
+    id: z.string().uuid(),
+    type: z.string(),
+    direction: z.string(),
+    amount: z.number(),
+    balanceBefore: z.number(),
+    balanceAfter: z.number(),
+    reference: z.string(),
+    createdAt: z.string(),
   }),
 };
 
@@ -176,6 +198,52 @@ registry.registerPath({
     404: {
       description: 'Wallet not found',
       ...json(errorSchema(errorExample('Wallet not found'))),
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/v1/wallet/fund',
+  tags: ['Wallet'],
+  summary: 'Fund the authenticated user wallet (amount in kobo)',
+  security: [{ bearerAuth: [] }],
+  request: {
+    headers: z.object({
+      'Idempotency-Key': z.string().uuid().optional(),
+    }),
+    body: json(fundSchema.openapi({ example: { amount: 500000 } })),
+  },
+  responses: {
+    200: {
+      description: 'Wallet funded',
+      ...json(
+        successSchema(
+          z.object({ wallet: dataSchemas.wallet, transaction: dataSchemas.transaction }),
+          {
+            success: true,
+            message: 'Wallet funded successfully',
+            data: {
+              wallet: { ...walletExample, balance: 500000 },
+              transaction: transactionExample,
+            },
+          },
+        ),
+      ),
+    },
+    401: {
+      description: 'Unauthorized',
+      ...json(errorSchema(errorExample('Authentication token is missing or malformed'))),
+    },
+    404: {
+      description: 'Wallet not found',
+      ...json(errorSchema(errorExample('Wallet not found'))),
+    },
+    422: {
+      description: 'Validation failed',
+      ...json(
+        errorSchema(errorExample('Validation failed', { amount: ['Expected a positive integer'] })),
+      ),
     },
   },
 });
