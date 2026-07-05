@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Knex } from 'knex';
 import { db as knexDb } from '../../../common/database/knex';
-import { NotFoundError } from '../../../common/errors/app-error';
+import { NotFoundError, UnprocessableEntityError } from '../../../common/errors/app-error';
 import { isUniqueViolation } from '../../../common/database/db-error.util';
 import { IdempotencyRepository } from '../../../common/idempotency/idempotency.repository';
 import { TransactionRepository } from '../../transaction/repository/transaction.repository';
@@ -74,6 +74,95 @@ export class WalletService {
         return {
           wallet: toWalletResponse({ ...wallet, balance: balanceAfter }),
           transaction: toTransactionResponse(transaction),
+        };
+      });
+    } catch (error) {
+      const conflictReplay = await this.findReplayOnConflict(error, idempotencyKey);
+      if (conflictReplay) {
+        return conflictReplay;
+      }
+      throw error;
+    }
+  }
+
+  async transfer(
+    userId: string,
+    recipientAccountNumber: string,
+    amount: number,
+    idempotencyKey?: string,
+  ): Promise<WalletMutationResult> {
+    const replayed = await this.findReplay(idempotencyKey);
+    if (replayed) {
+      return replayed;
+    }
+
+    const reference = randomUUID();
+    try {
+      return await this.db.transaction(async (trx) => {
+        await this.recordIdempotency(idempotencyKey, userId, reference, trx);
+
+        const sender = await this.walletRepo.findByUserId(userId, trx);
+        if (!sender) {
+          throw new NotFoundError('Wallet not found');
+        }
+        const recipient = await this.walletRepo.findByAccountNumber(recipientAccountNumber, trx);
+        if (!recipient) {
+          throw new NotFoundError('Recipient account not found');
+        }
+        if (sender.id === recipient.id) {
+          throw new UnprocessableEntityError('You cannot transfer to your own wallet');
+        }
+
+        const locked = await this.walletRepo.lockByIds([sender.id, recipient.id], trx);
+        const lockedSender = locked.find((wallet) => wallet.id === sender.id);
+        const lockedRecipient = locked.find((wallet) => wallet.id === recipient.id);
+        if (!lockedSender || !lockedRecipient) {
+          throw new NotFoundError('Wallet not found');
+        }
+
+        const senderBefore = Number(lockedSender.balance);
+        if (senderBefore < amount) {
+          throw new UnprocessableEntityError('Insufficient funds');
+        }
+        const senderAfter = senderBefore - amount;
+        const recipientBefore = Number(lockedRecipient.balance);
+        const recipientAfter = recipientBefore + amount;
+
+        await this.walletRepo.updateBalance(lockedSender.id, senderAfter, trx);
+        await this.walletRepo.updateBalance(lockedRecipient.id, recipientAfter, trx);
+
+        const senderDebit = await this.transactionRepo.create(
+          {
+            id: randomUUID(),
+            wallet_id: lockedSender.id,
+            type: 'transfer',
+            direction: 'debit',
+            amount,
+            balance_before: senderBefore,
+            balance_after: senderAfter,
+            counterparty_wallet_id: lockedRecipient.id,
+            reference,
+          },
+          trx,
+        );
+        await this.transactionRepo.create(
+          {
+            id: randomUUID(),
+            wallet_id: lockedRecipient.id,
+            type: 'transfer',
+            direction: 'credit',
+            amount,
+            balance_before: recipientBefore,
+            balance_after: recipientAfter,
+            counterparty_wallet_id: lockedSender.id,
+            reference,
+          },
+          trx,
+        );
+
+        return {
+          wallet: toWalletResponse({ ...lockedSender, balance: senderAfter }),
+          transaction: toTransactionResponse(senderDebit),
         };
       });
     } catch (error) {
