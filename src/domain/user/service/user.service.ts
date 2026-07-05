@@ -6,6 +6,7 @@ import { AdjutorClient } from '../../../integrations/adjutor/adjutor.client';
 import { PasswordService } from '../../../common/auth/password.service';
 import { TokenService } from '../../../common/auth/token.service';
 import { generateAccountNumber } from '../../../common/utils/account-number.util';
+import { toInternationalPhone } from '../../../common/utils/phone.util';
 import { WalletRepository } from '../../wallet/repository/wallet.repository';
 import { toWalletResponse, type WalletResponse } from '../../wallet/types/wallet.types';
 import { UserRepository } from '../repository/user.repository';
@@ -66,13 +67,10 @@ export class UserService {
   }
 
   private async assertNotBlacklisted(dto: RegisterDto): Promise<void> {
-    if (await this.adjutor.lookupKarma(dto.phone)) {
+    if (await this.adjutor.lookupKarma(toInternationalPhone(dto.phone))) {
       throw new ForbiddenError(
         'This phone number is on the Karma blacklist and cannot be onboarded.',
       );
-    }
-    if (await this.adjutor.lookupKarma(dto.email)) {
-      throw new ForbiddenError('This email is on the Karma blacklist and cannot be onboarded.');
     }
   }
 

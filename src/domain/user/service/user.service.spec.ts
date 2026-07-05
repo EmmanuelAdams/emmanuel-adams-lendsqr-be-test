@@ -64,32 +64,23 @@ describe('UserService.register', () => {
     expect(walletRepo.create).toHaveBeenCalledTimes(1);
   });
 
-  it('checks the phone against Karma before the email', async () => {
+  it('checks the phone against Karma in international format', async () => {
     const { service, adjutor } = makeService();
 
     await service.register(dto);
 
-    expect(adjutor.lookupKarma).toHaveBeenNthCalledWith(1, dto.phone);
-    expect(adjutor.lookupKarma).toHaveBeenNthCalledWith(2, dto.email);
+    expect(adjutor.lookupKarma).toHaveBeenCalledWith('+2348012345678');
+    expect(adjutor.lookupKarma).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a blacklisted phone and never creates a user', async () => {
     const { service, adjutor, userRepo } = makeService();
     adjutor.lookupKarma.mockImplementation(async (id: string) =>
-      id === dto.phone ? { karma_identity: id } : null,
+      id === '+2348012345678' ? { karma_identity: id } : null,
     );
 
     await expect(service.register(dto)).rejects.toBeInstanceOf(ForbiddenError);
     expect(userRepo.create).not.toHaveBeenCalled();
-  });
-
-  it('rejects a blacklisted email', async () => {
-    const { service, adjutor } = makeService();
-    adjutor.lookupKarma.mockImplementation(async (id: string) =>
-      id === dto.email ? { karma_identity: id } : null,
-    );
-
-    await expect(service.register(dto)).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it('rejects a duplicate email with a ConflictError', async () => {
