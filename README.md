@@ -53,15 +53,21 @@ repository is the only place that talks to the database.
 
 ```
 src/
-  config/                 # validated environment configuration
-  common/
-    api/response/         # SuccessResponse / ErrorResponse envelopes
-    auth/                 # token signing and verification
-    database/             # Knex instance, migrations
-    errors/               # AppError hierarchy
-    idempotency/          # idempotency-key repository
-    middleware/           # auth, rate limiting, error handling, timing
-    utils/                # logger, async handler, phone formatting
+  config/                 # validated configuration
+    env.ts                #   environment schema and parsed env
+    database.config.ts    #   knex connection settings per environment
+  common/                 # cross-cutting modules, each shared by many callers
+    api/response/         #   SuccessResponse / ErrorResponse envelopes
+    auth/                 #   token signing and verification
+    errors/               #   AppError hierarchy and database error helpers
+    idempotency/          #   idempotency-key repository
+    middleware/           #   auth, rate limiting, error handling, timing
+    utils/                #   logger, async handler, phone formatting
+  database/               # standalone: schema migrations
+    migrations/
+  loaders/                # startup wiring
+    database.loader.ts    #   creates the knex connection and confirms it
+    knexfile.docker.ts    #   knex CLI config for container migrations
   domain/
     wallet/               # one domain, shown expanded; the others follow the same layout
       route/              #   route wiring and middleware
@@ -84,11 +90,13 @@ src/
 
 Controllers and services are classes with their dependencies injected through
 the constructor (defaulting to a real instance). That keeps the wiring simple in
-production and lets the unit tests pass in mocks without a running database.
+production and lets the unit tests pass in mocks without a running database. The
+connection itself is owned by the database loader, which creates it and confirms
+it is reachable before the server accepts traffic.
 
 There is no ORM model layer: Knex is a query builder, not an ORM, so the schema
-is defined by the migrations under `common/database/migrations`, the row, insert,
-and response shapes live as typed interfaces in each domain's `types/`, and every
+is defined by the migrations under `database/migrations`, the row, insert, and
+response shapes live as typed interfaces in each domain's `types/`, and every
 query is confined to the repositories.
 
 ## Database schema (E-R diagram)
