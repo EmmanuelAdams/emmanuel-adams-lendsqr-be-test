@@ -1,5 +1,5 @@
 import knex, { type Knex } from 'knex';
-import knexConfigs from '../common/database/knex-config';
+import knexConfigs from '../config/database.config';
 import { env } from '../config/env';
 import { logger } from '../common/utils/logger';
 

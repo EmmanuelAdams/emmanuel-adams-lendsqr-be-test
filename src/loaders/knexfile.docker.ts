@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import knexConfigs from './knex-config';
+import knexConfigs from '../config/database.config';
 
 // Container config: migrations run from the compiled JS so the runtime needs no ts-node.
 const environment = process.env.NODE_ENV ?? 'production';
@@ -12,7 +12,7 @@ if (!base) {
 const dockerConfig: Knex.Config = {
   ...base,
   migrations: {
-    directory: `${__dirname}/migrations`,
+    directory: `${__dirname}/../database/migrations`,
     extension: 'js',
     loadExtensions: ['.js'],
     tableName: 'knex_migrations',

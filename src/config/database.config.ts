@@ -43,7 +43,7 @@ const shared: Knex.Config = {
   client: 'mysql2',
   pool: { min: 2, max: 10 },
   migrations: {
-    directory: './src/common/database/migrations',
+    directory: './src/database/migrations',
     extension: 'ts',
     tableName: 'knex_migrations',
   },
