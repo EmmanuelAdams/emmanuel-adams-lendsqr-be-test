@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../../common/database/knex';
+import { db as knexDb } from '../../../loaders/database.loader';
 import type { NewWallet, WalletRow } from '../types/wallet.types';
 
 export class WalletRepository {

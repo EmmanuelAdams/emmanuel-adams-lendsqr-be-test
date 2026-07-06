@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../../common/database/knex';
+import { db as knexDb } from '../../../loaders/database.loader';
 import { NotFoundError, UnprocessableEntityError } from '../../../common/errors/app-error';
 import { isUniqueViolation } from '../../../common/database/db-error.util';
 import { IdempotencyRepository } from '../../../common/idempotency/idempotency.repository';

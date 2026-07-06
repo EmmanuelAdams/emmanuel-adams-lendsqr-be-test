@@ -1,8 +1,7 @@
 import type { Server } from 'node:http';
 import { createApp } from './app';
 import { env } from './config/env';
-import { db } from './common/database/knex';
-import { connectDatabase } from './loaders/database.loader';
+import { connectDatabase, db } from './loaders/database.loader';
 import { logger } from './common/utils/logger';
 
 const start = async (): Promise<void> => {

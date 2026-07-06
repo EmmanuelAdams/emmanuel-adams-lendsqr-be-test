@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../../common/database/knex';
+import { db as knexDb } from '../../../loaders/database.loader';
 import { ConflictError, ForbiddenError } from '../../../common/errors/app-error';
 import { AdjutorClient } from '../../../integrations/adjutor/adjutor.client';
 import { PasswordService } from '../../../common/auth/password.service';

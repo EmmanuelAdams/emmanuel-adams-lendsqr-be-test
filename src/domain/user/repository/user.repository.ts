@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { db as knexDb } from '../../../common/database/knex';
+import { db as knexDb } from '../../../loaders/database.loader';
 import type { NewUser, UserRow } from '../types/user.types';
 
 export class UserRepository {

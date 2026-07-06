@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { db as knexDb } from '../database/knex';
+import { db as knexDb } from '../../loaders/database.loader';
 
 export interface IdempotencyRow {
   id: string;
