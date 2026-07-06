@@ -1,0 +1,587 @@
+{
+  "info": {
+    "name": "Demo Credit Wallet API",
+    "description": "Wallet service for the Lendsqr backend assessment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://emmanuel-adams-lendsqr-be-test.onrender.com/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "firstName",
+      "value": "Ada",
+      "type": "string"
+    },
+    {
+      "key": "lastName",
+      "value": "Okafor",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "ada@example.com",
+      "type": "string"
+    },
+    {
+      "key": "phone",
+      "value": "08012345678",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Password123",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accountNumber",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recipientAccount",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Liveness probe. No auth."
+      },
+      "response": [
+        {
+          "name": "OK response",
+          "originalRequest": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Liveness probe. No auth."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Service is healthy\",\n  \"data\": {\n    \"status\": \"ok\",\n    \"uptime\": 128.42,\n    \"timestamp\": \"2026-07-06T10:00:00.000Z\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data) {",
+                  "  if (res.data.token) pm.collectionVariables.set('token', res.data.token);",
+                  "  if (res.data.wallet) pm.collectionVariables.set('accountNumber', res.data.wallet.accountNumber);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"{{phone}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Creates a user and wallet, runs the Karma check, and returns a JWT. The token and account number are captured into variables automatically. Change the email variable if it already exists."
+          },
+          "response": [
+            {
+              "name": "Created response",
+              "originalRequest": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"{{phone}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                },
+                "description": "Creates a user and wallet, runs the Karma check, and returns a JWT. The token and account number are captured into variables automatically. Change the email variable if it already exists."
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Account created successfully\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"e8d74ddc-5880-4baa-b063-bb2512fd53a9\",\n      \"firstName\": \"Ada\",\n      \"lastName\": \"Okafor\",\n      \"email\": \"ada@example.com\",\n      \"phone\": \"08012345678\",\n      \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n    },\n    \"wallet\": {\n      \"id\": \"7d853d9c-44b5-417a-8f01-7d594ea79c07\",\n      \"accountNumber\": \"1573508155\",\n      \"balance\": 0,\n      \"currency\": \"NGN\"\n    },\n    \"token\": \"<jwt-token>\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.token) pm.collectionVariables.set('token', res.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticates the user in the variables and refreshes the token."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                },
+                "description": "Authenticates the user in the variables and refreshes the token."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"e8d74ddc-5880-4baa-b063-bb2512fd53a9\",\n      \"firstName\": \"Ada\",\n      \"lastName\": \"Okafor\",\n      \"email\": \"ada@example.com\",\n      \"phone\": \"08012345678\",\n      \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n    },\n    \"token\": \"<jwt-token>\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet"]
+            },
+            "description": "Current balance for the authenticated user."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/wallet",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["wallet"]
+                },
+                "description": "Current balance for the authenticated user."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Wallet retrieved successfully\",\n  \"data\": {\n    \"id\": \"7d853d9c-44b5-417a-8f01-7d594ea79c07\",\n    \"accountNumber\": \"1573508155\",\n    \"balance\": 500000,\n    \"currency\": \"NGN\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Fund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/fund",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "fund"]
+            },
+            "description": "Adds 500000 kobo, i.e. 5,000.00 NGN. The Idempotency-Key is a fresh UUID per send; reuse the same value to see a retry replay instead of a second credit."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": 500000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/fund",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["wallet", "fund"]
+                },
+                "description": "Adds 500000 kobo, i.e. 5,000.00 NGN. The Idempotency-Key is a fresh UUID per send; reuse the same value to see a retry replay instead of a second credit."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Wallet funded successfully\",\n  \"data\": {\n    \"wallet\": {\n      \"id\": \"7d853d9c-44b5-417a-8f01-7d594ea79c07\",\n      \"accountNumber\": \"1573508155\",\n      \"balance\": 500000,\n      \"currency\": \"NGN\"\n    },\n    \"transaction\": {\n      \"id\": \"84bddf90-66c7-412d-acdc-f28a195de9b8\",\n      \"type\": \"funding\",\n      \"direction\": \"credit\",\n      \"amount\": 500000,\n      \"balanceBefore\": 0,\n      \"balanceAfter\": 500000,\n      \"reference\": \"d380fec3-c635-4ce1-aed5-61d8ea9111a1\",\n      \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{recipientAccount}}\",\n  \"amount\": 200000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "transfer"]
+            },
+            "description": "Sends 200000 kobo to the recipientAccount variable. Set it to another user's account number first, for example by changing the email variable and running Register again, then copying the returned account number."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accountNumber\": \"{{recipientAccount}}\",\n  \"amount\": 200000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/transfer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["wallet", "transfer"]
+                },
+                "description": "Sends 200000 kobo to the recipientAccount variable. Set it to another user's account number first, for example by changing the email variable and running Register again, then copying the returned account number."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Transfer successful\",\n  \"data\": {\n    \"wallet\": {\n      \"id\": \"7d853d9c-44b5-417a-8f01-7d594ea79c07\",\n      \"accountNumber\": \"1573508155\",\n      \"balance\": 300000,\n      \"currency\": \"NGN\"\n    },\n    \"transaction\": {\n      \"id\": \"943c9493-c3df-4649-9096-fc576f1673f7\",\n      \"type\": \"transfer\",\n      \"direction\": \"debit\",\n      \"amount\": 200000,\n      \"balanceBefore\": 500000,\n      \"balanceAfter\": 300000,\n      \"reference\": \"1fb5d2e4-30d6-4de7-8a39-f6f6024e69be\",\n      \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Withdraw",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "withdraw"]
+            },
+            "description": "Withdraws 100000 kobo."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": 100000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/withdraw",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["wallet", "withdraw"]
+                },
+                "description": "Withdraws 100000 kobo."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Withdrawal successful\",\n  \"data\": {\n    \"wallet\": {\n      \"id\": \"7d853d9c-44b5-417a-8f01-7d594ea79c07\",\n      \"accountNumber\": \"1573508155\",\n      \"balance\": 200000,\n      \"currency\": \"NGN\"\n    },\n    \"transaction\": {\n      \"id\": \"b4b6bb4a-7e9d-49c8-b251-f6d3e2171642\",\n      \"type\": \"withdrawal\",\n      \"direction\": \"debit\",\n      \"amount\": 100000,\n      \"balanceBefore\": 300000,\n      \"balanceAfter\": 200000,\n      \"reference\": \"db7e9a3c-b707-4529-ae33-8f3201172334\",\n      \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallet/transactions?page=1&limit=20&type=transfer&direction=debit",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "transactions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "transfer",
+                  "disabled": true
+                },
+                {
+                  "key": "direction",
+                  "value": "debit",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Paginated ledger, newest first. Enable the type and direction query params to filter."
+          },
+          "response": [
+            {
+              "name": "OK response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/transactions?page=1&limit=20&type=transfer&direction=debit",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["wallet", "transactions"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "type",
+                      "value": "transfer",
+                      "disabled": true
+                    },
+                    {
+                      "key": "direction",
+                      "value": "debit",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Paginated ledger, newest first. Enable the type and direction query params to filter."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Transactions retrieved successfully\",\n  \"data\": {\n    \"transactions\": [\n      {\n        \"id\": \"b4b6bb4a-7e9d-49c8-b251-f6d3e2171642\",\n        \"type\": \"withdrawal\",\n        \"direction\": \"debit\",\n        \"amount\": 100000,\n        \"balanceBefore\": 300000,\n        \"balanceAfter\": 200000,\n        \"reference\": \"db7e9a3c-b707-4529-ae33-8f3201172334\",\n        \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n      },\n      {\n        \"id\": \"943c9493-c3df-4649-9096-fc576f1673f7\",\n        \"type\": \"transfer\",\n        \"direction\": \"debit\",\n        \"amount\": 200000,\n        \"balanceBefore\": 500000,\n        \"balanceAfter\": 300000,\n        \"reference\": \"1fb5d2e4-30d6-4de7-8a39-f6f6024e69be\",\n        \"createdAt\": \"2026-07-06T10:00:00.000Z\"\n      }\n    ],\n    \"meta\": {\n      \"total\": 2,\n      \"page\": 1,\n      \"limit\": 20,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
